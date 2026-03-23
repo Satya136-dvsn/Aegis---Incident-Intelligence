@@ -1,0 +1,5 @@
+{
+  "name": "Aegis - Incident Intelligence",
+  "description": "A comprehensive incident management and intelligence platform for reporting, tracking, and analyzing security and operational incidents.",
+  "requestFramePermissions": ["geolocation"]
+}

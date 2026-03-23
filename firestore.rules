@@ -1,0 +1,135 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (uid)
+    // Fields:
+    //   - uid: string (required, immutable)
+    //   - email: string (required, format: email)
+    //   - displayName: string (optional)
+    //   - role: string (required, enum: ["admin", "responder", "reporter"])
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: incidents
+    // Document ID: incidentId
+    // Fields:
+    //   - title: string (required, max: 100)
+    //   - description: string (required, max: 2000)
+    //   - severity: string (required, enum: ["low", "medium", "high", "critical"])
+    //   - status: string (required, enum: ["open", "in-progress", "resolved", "closed"])
+    //   - category: string (required, max: 50)
+    //   - reporterUid: string (required, immutable)
+    //   - reporterName: string (required, max: 100)
+    //   - createdAt: timestamp (required, immutable)
+    //   - updatedAt: timestamp (required)
+    //   - location: map (optional)
+    //
+    // Collection: incidents/{incidentId}/comments
+    // Document ID: commentId
+    // Fields:
+    //   - incidentId: string (required, immutable)
+    //   - text: string (required, max: 1000)
+    //   - authorUid: string (required, immutable)
+    //   - authorName: string (required, max: 100)
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "d.v.satyanarayana260@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isResponder() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'responder' || isAdmin());
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasOnlyAllowedFields(['uid', 'email', 'displayName', 'role', 'createdAt']) &&
+             data.uid == request.auth.uid &&
+             data.email is string && isValidEmail(data.email) &&
+             (data.displayName == null || (data.displayName is string && data.displayName.size() < 100)) &&
+             data.role in ['admin', 'responder', 'reporter'] &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidIncident(data) {
+      return hasOnlyAllowedFields(['title', 'description', 'severity', 'status', 'category', 'reporterUid', 'reporterName', 'createdAt', 'updatedAt', 'location']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 100 &&
+             data.description is string && data.description.size() > 0 && data.description.size() <= 2000 &&
+             data.severity in ['low', 'medium', 'high', 'critical'] &&
+             data.status in ['open', 'in-progress', 'resolved', 'closed'] &&
+             data.category is string && data.category.size() <= 50 &&
+             data.reporterUid == request.auth.uid &&
+             data.reporterName is string && data.reporterName.size() <= 100 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp &&
+             (data.location == null || (data.location is map && data.location.keys().hasOnly(['latitude', 'longitude'])));
+    }
+
+    function isValidComment(data) {
+      return hasOnlyAllowedFields(['incidentId', 'text', 'authorUid', 'authorName', 'createdAt']) &&
+             data.incidentId is string &&
+             data.text is string && data.text.size() > 0 && data.text.size() <= 1000 &&
+             data.authorUid == request.auth.uid &&
+             data.authorName is string && data.authorName.size() <= 100 &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Match Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == 'reporter' || isAdmin());
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == resource.data.role || isAdmin());
+    }
+
+    match /incidents/{incidentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidIncident(request.resource.data);
+      allow update: if isAuthenticated() && isValidIncident(request.resource.data) &&
+                    (isOwner(resource.data.reporterUid) || isResponder());
+      allow delete: if isAdmin();
+
+      match /comments/{commentId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() && isValidComment(request.resource.data);
+        allow update: if isOwner(resource.data.authorUid) && isValidComment(request.resource.data);
+        allow delete: if isOwner(resource.data.authorUid) || isAdmin();
+      }
+    }
+  }
+}
