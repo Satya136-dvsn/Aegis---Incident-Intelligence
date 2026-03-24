@@ -79,6 +79,7 @@ class LogIn(BaseModel):
     level: LogLevelEnum
     message: str = Field(..., min_length=1, max_length=5000)
     timestamp: datetime | None = None
+    metadata: dict | None = Field(None, description="Optional structured context")
 
     model_config = {"extra": "forbid"}
 

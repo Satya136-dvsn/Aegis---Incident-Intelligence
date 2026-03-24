@@ -40,6 +40,7 @@ class DataResponse(BaseModel, Generic[T]):
 
     data: T
     meta: ResponseMeta
+    message: str | None = None
 
 
 # ── Error ─────────────────────────────────────────────────────────────

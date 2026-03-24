@@ -1,0 +1,44 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Aegis---Incident-Intelligence-main\backend\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Aegis---Incident-Intelligence-main\backend
+configfile: pyproject.toml
+plugins: anyio-4.13.0, asyncio-1.3.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 5 items
+
+tests/test_api_metrics.py::test_ingest_single_metric FAILED              [ 20%]
+tests/test_api_metrics.py::test_ingest_batch_metrics FAILED              [ 40%]
+tests/test_api_metrics.py::test_ingest_metrics_validation_error PASSED   [ 60%]
+tests/test_api_logs.py::test_ingest_log FAILED                           [ 80%]
+tests/test_api_logs.py::test_ingest_log_invalid_level PASSED             [100%]
+
+================================== FAILURES ===================================
+__________________________ test_ingest_single_metric __________________________
+tests\test_api_metrics.py:28: in test_ingest_single_metric
+    assert data["message"] == "Successfully ingested 1 metric(s)"
+           ^^^^^^^^^^^^^^^
+E   KeyError: 'message'
+---------------------------- Captured stdout call -----------------------------
+2026-03-25 00:04:40 [info     ] metrics_ingested               count=1 request_id=unknown services=['payment-gateway']
+2026-03-25 00:04:40 [info     ] request_completed              elapsed_ms=24.23 method=POST path=/api/v1/metrics request_id=abcbe990-d8b1-4640-b1a6-c3a5a4251c7d status=201
+__________________________ test_ingest_batch_metrics __________________________
+tests\test_api_metrics.py:44: in test_ingest_batch_metrics
+    assert data["message"] == "Successfully ingested 2 metric(s)"
+           ^^^^^^^^^^^^^^^
+E   KeyError: 'message'
+---------------------------- Captured stdout call -----------------------------
+2026-03-25 00:04:40 [info     ] metrics_ingested               count=2 request_id=unknown services=['auth-api']
+2026-03-25 00:04:40 [info     ] request_completed              elapsed_ms=24.19 method=POST path=/api/v1/metrics request_id=8914b79d-496f-43e4-b347-9682dc93763e status=201
+_______________________________ test_ingest_log _______________________________
+tests\test_api_logs.py:26: in test_ingest_log
+    assert response.status_code == 201
+E   assert 422 == 201
+E    +  where 422 = <Response [422 Unprocessable Entity]>.status_code
+---------------------------- Captured stdout call -----------------------------
+2026-03-25 00:04:40 [info     ] request_completed              elapsed_ms=2.44 method=POST path=/api/v1/logs request_id=dccfe826-3729-464b-90a4-2d86a650af73 status=422
+=========================== short test summary info ===========================
+FAILED tests/test_api_metrics.py::test_ingest_single_metric - KeyError: 'mess...
+FAILED tests/test_api_metrics.py::test_ingest_batch_metrics - KeyError: 'mess...
+FAILED tests/test_api_logs.py::test_ingest_log - assert 422 == 201
+========================= 3 failed, 2 passed in 1.03s =========================

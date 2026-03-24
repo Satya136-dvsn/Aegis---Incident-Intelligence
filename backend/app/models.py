@@ -104,6 +104,10 @@ class LogRecord(Base):
     service_name: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     level: Mapped[LogLevel] = mapped_column(Enum(LogLevel), nullable=False, index=True)
     message: Mapped[str] = mapped_column(Text, nullable=False)
+    
+    from sqlalchemy import JSON
+    metadata_payload: Mapped[dict | list | None] = mapped_column(JSON, nullable=True)
+    
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
