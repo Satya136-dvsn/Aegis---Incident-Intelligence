@@ -22,8 +22,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.v1.health import router as health_router
+from app.api.v1.incidents import router as incidents_router
 from app.api.v1.logs import router as logs_router
 from app.api.v1.metrics import router as metrics_router
+from app.api.v1.stream import stream_router
 from app.config import get_settings
 from app.logging import setup_logging
 from app.middleware import RequestIDMiddleware
@@ -98,9 +100,11 @@ def create_app() -> FastAPI:
     _register_exception_handlers(app)
 
     # ── Routers ───────────────────────────────────────────────────
-    app.include_router(health_router, prefix=settings.API_V1_PREFIX)
-    app.include_router(metrics_router, prefix=settings.API_V1_PREFIX)
-    app.include_router(logs_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(health_router, prefix=settings.API_V1_PREFIX, tags=["Diagnostics"])
+    app.include_router(incidents_router, prefix=settings.API_V1_PREFIX, tags=["Dashboard"])
+    app.include_router(metrics_router, prefix=settings.API_V1_PREFIX, tags=["Ingestion"])
+    app.include_router(logs_router, prefix=settings.API_V1_PREFIX, tags=["Ingestion"])
+    app.include_router(stream_router, prefix=f"{settings.API_V1_PREFIX}/stream", tags=["Realtime"])
 
     return app
 

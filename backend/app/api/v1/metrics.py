@@ -53,8 +53,20 @@ async def ingest_metrics(
     # Trigger background anomaly detection task
     # We pass the IDs so the worker can fetch the fresh records
     from app.tasks import process_metric_batch
+    from app.api.v1.stream import manager
     record_ids = [r.id for r in records] # type: ignore
     process_metric_batch.delay(record_ids)
+
+    # Broadcast to WebSocket
+    # We use await asyncio.shield or just await directly
+    for r in records:
+        await manager.broadcast("new_metric", {
+            "id": r.id,
+            "service_name": r.service_name,
+            "metric_type": r.metric_type,
+            "value": r.value,
+            "timestamp": r.timestamp.isoformat()
+        })
 
     await logger.ainfo(
         "metrics_ingested",
