@@ -39,6 +39,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     settings = get_settings()
     setup_logging()
 
+    # ── Database initialization ───────────────────────────────────
+    from app.database import Base, engine
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    await logger.ainfo("database_initialized")
+
     await logger.ainfo(
         "aegis_starting",
         version=settings.APP_VERSION,
@@ -48,6 +55,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield  # ← application is running
 
+    # ── Cleanup ───────────────────────────────────────────────────
+    from app.database import engine as db_engine
+
+    await db_engine.dispose()
     await logger.ainfo("aegis_shutdown")
 
 
