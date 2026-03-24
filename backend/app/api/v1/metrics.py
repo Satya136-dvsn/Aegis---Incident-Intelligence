@@ -50,6 +50,12 @@ async def ingest_metrics(
     records = await repository.create_metrics_batch(db, metrics_data)
     await db.commit()
 
+    # Trigger background anomaly detection task
+    # We pass the IDs so the worker can fetch the fresh records
+    from app.tasks import process_metric_batch
+    record_ids = [r.id for r in records] # type: ignore
+    process_metric_batch.delay(record_ids)
+
     await logger.ainfo(
         "metrics_ingested",
         count=len(records),
@@ -58,7 +64,7 @@ async def ingest_metrics(
     )
 
     return DataResponse(
-        data=[r.id for r in records],  # type: ignore
+        data=record_ids,
         meta=ResponseMeta(request_id=request_id, version=settings.APP_VERSION),
         message=f"Successfully ingested {len(records)} metric(s)",
     )

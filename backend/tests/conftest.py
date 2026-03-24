@@ -19,6 +19,15 @@ os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///./test.db"
 import app.models  # Ensure models are registered with Base.metadata before tests run
 from app.database import Base
 from app.main import app
+from app.worker import celery_app
+
+# Set Celery to eager mode so tasks execute synchronously without Redis during tests
+celery_app.conf.update(
+    task_always_eager=True,
+    task_eager_propagates=True,
+    broker_url="memory://",
+    result_backend="cache+memory://"
+)
 
 # Create a single test engine
 test_engine = create_async_engine(
@@ -30,6 +39,13 @@ test_engine = create_async_engine(
 TestingSessionLocal = async_sessionmaker(
     test_engine, class_=AsyncSession, expire_on_commit=False
 )
+
+
+@pytest.fixture
+async def db_session() -> AsyncGenerator[AsyncSession, None]:
+    """Provide a direct database session for test queries."""
+    async with TestingSessionLocal() as session:
+        yield session
 
 
 @pytest.fixture

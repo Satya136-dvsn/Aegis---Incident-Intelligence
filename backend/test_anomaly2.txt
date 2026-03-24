@@ -1,0 +1,124 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Aegis---Incident-Intelligence-main\backend\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Aegis---Incident-Intelligence-main\backend
+configfile: pyproject.toml
+plugins: anyio-4.13.0, asyncio-1.3.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 2 items
+
+tests/test_anomaly_engine.py::test_trigger_incident_creates_db_record PASSED [ 50%]
+tests/test_anomaly_engine.py::test_process_metric_batch_detects_anomaly FAILED [100%]
+
+================================== FAILURES ===================================
+__________________ test_process_metric_batch_detects_anomaly __________________
+venv\Lib\site-packages\celery\app\trace.py:479: in trace_task
+    R = retval = fun(*args, **kwargs)
+                 ^^^^^^^^^^^^^^^^^^^^
+app\tasks.py:120: in trigger_incident
+    return run_async(_trigger_incident_async(service_name, metric_type, value, metric_id))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app\tasks.py:30: in run_async
+    import nest_asyncio
+E   ModuleNotFoundError: No module named 'nest_asyncio'
+
+During handling of the above exception, another exception occurred:
+venv\Lib\site-packages\redis\connection.py:1003: in connect_check_health
+    sock = self._connect()
+           ^^^^^^^^^^^^^^^
+venv\Lib\site-packages\redis\connection.py:1515: in _connect
+    raise err
+venv\Lib\site-packages\redis\connection.py:1499: in _connect
+    sock.connect(socket_address)
+E   ConnectionRefusedError: [WinError 10061] No connection could be made because the target machine actively refused it
+
+During handling of the above exception, another exception occurred:
+tests\test_anomaly_engine.py:62: in test_process_metric_batch_detects_anomaly
+    result = await _process_metric_batch_async([spike.id])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+app\tasks.py:107: in _process_metric_batch_async
+    trigger_incident.delay(
+venv\Lib\site-packages\celery\app\task.py:444: in delay
+    return self.apply_async(args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\celery\app\task.py:605: in apply_async
+    return self.apply(args, kwargs, task_id=task_id or uuid(),
+venv\Lib\site-packages\celery\app\task.py:843: in apply
+    ret = tracer(task_id, args, kwargs, request)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\celery\app\trace.py:499: in trace_task
+    I, R, state, retval = on_error(task_request, exc)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\celery\app\trace.py:407: in on_error
+    R = I.handle_error_state(
+venv\Lib\site-packages\celery\app\trace.py:175: in handle_error_state
+    return {
+venv\Lib\site-packages\celery\app\trace.py:236: in handle_failure
+    task.backend.mark_as_failure(
+venv\Lib\site-packages\celery\backends\base.py:194: in mark_as_failure
+    self.store_result(task_id, exc, state,
+venv\Lib\site-packages\celery\backends\base.py:625: in store_result
+    self._store_result(task_id, result, state, traceback,
+venv\Lib\site-packages\celery\backends\base.py:1074: in _store_result
+    current_meta = self._get_task_meta_for(task_id)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\celery\backends\base.py:1096: in _get_task_meta_for
+    meta = self.get(self.get_key_for_task(task_id))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\celery\backends\redis.py:420: in get
+    return self.client.get(key)
+           ^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\redis\commands\core.py:2073: in get
+    return self.execute_command("GET", name, keys=[name])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\redis\client.py:716: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\redis\client.py:722: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\redis\utils.py:236: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\redis\connection.py:3041: in get_connection
+    connection.connect()
+venv\Lib\site-packages\redis\connection.py:976: in connect
+    self.retry.call_with_retry(
+venv\Lib\site-packages\redis\retry.py:132: in call_with_retry
+    raise error
+venv\Lib\site-packages\redis\retry.py:120: in call_with_retry
+    return do()
+           ^^^^
+venv\Lib\site-packages\redis\connection.py:977: in <lambda>
+    lambda: self.connect_check_health(
+venv\Lib\site-packages\redis\connection.py:1025: in connect_check_health
+    raise e
+E   redis.exceptions.ConnectionError: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+---------------------------- Captured stdout call -----------------------------
+2026-03-25 00:25:55 [info     ] anomaly_detected               service=auth-api threshold=11.024456264653802 type=cpu value=99.0
+=========================== short test summary info ===========================
+FAILED tests/test_anomaly_engine.py::test_process_metric_batch_detects_anomaly
+========================= 1 failed, 1 passed in 5.04s =========================
+c:\Aegis---Incident-Intell
+igence-main\backend\venv\S
+cripts\python.exe : 
+<sys>:0: RuntimeWarning: 
+coroutine 
+'_trigger_incident_async' 
+was never awaited
+At line:1 char:1
++ c:\Aegis---Incident-Inte
+lligence-main\backend\venv
+\Scripts\python.exe ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (<  
+  sys>:0: Runtim...s ne   
+ ver awaited:String) [    
+], RemoteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
