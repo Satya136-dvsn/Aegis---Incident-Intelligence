@@ -117,7 +117,13 @@ async def _process_metric_batch_async(metric_ids: list[int]) -> dict:
 @celery_app.task(bind=True, name="app.tasks.trigger_incident", max_retries=3)
 def trigger_incident(self, service_name: str, metric_type: str, value: float, metric_id: int) -> int | None:
     """Create an incident automatically when an automated anomaly is detected."""
-    return run_async(_trigger_incident_async(service_name, metric_type, value, metric_id))
+    incident_id = run_async(_trigger_incident_async(service_name, metric_type, value, metric_id))
+    
+    if incident_id:
+        # Chain the RCA task decoupled from the main incident creation
+        perform_rca_analysis.delay(incident_id, service_name)
+        
+    return incident_id
 
 
 async def _trigger_incident_async(service_name: str, metric_type: str, value: float, metric_id: int) -> int | None:
@@ -152,3 +158,73 @@ async def _trigger_incident_async(service_name: str, metric_type: str, value: fl
             metric=metric_type
         )
         return incident.id
+
+
+@celery_app.task(bind=True, name="app.tasks.perform_rca_analysis", max_retries=2)
+def perform_rca_analysis(self, incident_id: int, service_name: str) -> bool:
+    """Generate LLM-driven root cause analysis and attach it to the incident."""
+    return run_async(_perform_rca_analysis_async(incident_id, service_name))
+
+
+async def _perform_rca_analysis_async(incident_id: int, service_name: str) -> bool:
+    from sqlalchemy import select
+    from sqlalchemy.ext.asyncio import AsyncSession
+    from app.llm import generate_rca_sync
+    from app.models import Incident, MetricRecord, LogRecord
+
+    async with async_session() as db:
+        # 1. Fetch the incident
+        result = await db.execute(select(Incident).where(Incident.id == incident_id))
+        incident = result.scalar_one_or_none()
+        if not incident:
+            return False
+
+        # 2. Gather context: Last 5 metrics and logs for this service
+        metrics_req = await db.execute(
+            select(MetricRecord)
+            .where(MetricRecord.service_name == service_name)
+            .order_by(MetricRecord.timestamp.desc())
+            .limit(5)
+        )
+        context_metrics = [
+            {"type": m.metric_type, "val": m.value, "time": m.timestamp.isoformat()}
+            for m in metrics_req.scalars().all()
+        ]
+
+        logs_req = await db.execute(
+            select(LogRecord)
+            .where(LogRecord.service_name == service_name)
+            .order_by(LogRecord.timestamp.desc())
+            .limit(5)
+        )
+        context_logs = [
+            {"msg": l.message, "sev": l.level.value, "time": l.timestamp.isoformat()}
+            for l in logs_req.scalars().all()
+        ]
+
+        # 3. Call LLM Orchestrator
+        try:
+            # We call the synchronous Gemini agent from the async wrapper
+            # Since generating RCA is blocking, standard Celery workers will block.
+            rca_summary, probable_cause = generate_rca_sync(
+                incident.title,
+                incident.description,
+                context_logs,
+                context_metrics
+            )
+
+            # 4. Attach RCA to incident
+            incident.rca_summary = rca_summary
+            incident.probable_cause = probable_cause
+            await db.commit()
+            
+            await logger.ainfo(
+                "rca_attached",
+                incident_id=incident_id,
+                probable_cause=probable_cause
+            )
+            return True
+
+        except Exception as e:
+            await logger.aerror("rca_generation_failed", incident_id=incident_id, error=str(e))
+            return False
