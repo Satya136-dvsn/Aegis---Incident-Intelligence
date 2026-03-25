@@ -19,6 +19,9 @@ google-genai>=0.4.0
 openai>=1.14.0
 tenacity>=8.2.0
 
+# PostgreSQL Driver
+asyncpg>=0.29.00
+
 # Dev / Test
 pytest>=8.3.0
 pytest-asyncio>=0.24.0

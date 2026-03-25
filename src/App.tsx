@@ -228,7 +228,8 @@ export default function App() {
                     <input 
                       type="text" 
                       placeholder="SEARCH INCIDENTS..." 
-                      className="input-field pl-10 text-xs font-mono uppercase"
+                      className="input-field text-xs font-mono uppercase"
+                      style={{ paddingLeft: '2.5rem' }}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />

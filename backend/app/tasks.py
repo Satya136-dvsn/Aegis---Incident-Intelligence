@@ -23,13 +23,28 @@ from app.models import MetricRecord, IncidentStatus
 logger = structlog.get_logger(__name__)
 
 
+_celery_loop = None
+
 def run_async(coro):
-    """Utility to run async functions synchronously in Celery tasks."""
-    loop = asyncio.get_event_loop()
-    if loop.is_running():
-        import nest_asyncio
-        nest_asyncio.apply()
-    return asyncio.run(coro)
+    """Utility to run async functions synchronously in Celery tasks using a sticky loop."""
+    global _celery_loop
+    
+    # Check if we are running inside an existing loop (e.g. FastAPI directly)
+    try:
+        current_loop = asyncio.get_running_loop()
+        if current_loop and current_loop.is_running():
+            import nest_asyncio
+            nest_asyncio.apply()
+            return asyncio.run(coro)
+    except RuntimeError:
+        pass
+        
+    # Standard Celery Thread execution
+    if _celery_loop is None or _celery_loop.is_closed():
+        _celery_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(_celery_loop)
+        
+    return _celery_loop.run_until_complete(coro)
 
 
 @celery_app.task(bind=True, name="app.tasks.process_metric_batch", max_retries=3)

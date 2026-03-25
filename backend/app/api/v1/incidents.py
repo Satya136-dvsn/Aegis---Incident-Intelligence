@@ -7,20 +7,22 @@ Retrieval and management endpoints for Incidents.
 from __future__ import annotations
 
 from typing import Any
+import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.models import Incident, Comment
-from app.schemas import DataResponse
+from app.schemas import DataResponse, ResponseMeta
 
 router = APIRouter()
 
 @router.get("/incidents", response_model=DataResponse)
-async def list_incidents(db: AsyncSession = Depends(get_db)) -> Any:
+async def list_incidents(request: Request, db: AsyncSession = Depends(get_db)) -> Any:
+    req_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
     result = await db.execute(select(Incident).order_by(Incident.created_at.desc()).limit(100))
     incidents = result.scalars().all()
     
@@ -40,11 +42,16 @@ async def list_incidents(db: AsyncSession = Depends(get_db)) -> Any:
             "probableCause": getattr(inc, "probable_cause", None),
         })
         
-    return DataResponse(data=data, message="Retrieved incidents successfully.")
+    return DataResponse(
+        data=data,
+        meta=ResponseMeta(request_id=req_id),
+        message="Retrieved incidents successfully."
+    )
 
 
 @router.get("/incidents/{incident_id}/comments", response_model=DataResponse)
-async def list_comments(incident_id: int, db: AsyncSession = Depends(get_db)) -> Any:
+async def list_comments(incident_id: int, request: Request, db: AsyncSession = Depends(get_db)) -> Any:
+    req_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
     result = await db.execute(
         select(Comment)
         .where(Comment.incident_id == incident_id)
@@ -62,11 +69,16 @@ async def list_comments(incident_id: int, db: AsyncSession = Depends(get_db)) ->
         for c in comments
     ]
         
-    return DataResponse(data=data, message="Retrieved comments successfully.")
+    return DataResponse(
+        data=data,
+        meta=ResponseMeta(request_id=req_id),
+        message="Retrieved comments successfully."
+    )
 
 
 @router.post("/incidents/{incident_id}/comments", response_model=DataResponse)
-async def create_comment(incident_id: int, payload: dict, db: AsyncSession = Depends(get_db)) -> Any:
+async def create_comment(incident_id: int, payload: dict, request: Request, db: AsyncSession = Depends(get_db)) -> Any:
+    req_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
     text = payload.get("text")
     author_name = payload.get("authorName", "Anonymous")
     
@@ -83,9 +95,13 @@ async def create_comment(incident_id: int, payload: dict, db: AsyncSession = Dep
     await db.commit()
     await db.refresh(comment)
     
-    return DataResponse(data={
-        "id": str(comment.id),
-        "text": comment.text,
-        "authorName": comment.author_name,
-        "createdAt": comment.created_at.isoformat(),
-    }, message="Comment added.")
+    return DataResponse(
+        data={
+            "id": str(comment.id),
+            "text": comment.text,
+            "authorName": comment.author_name,
+            "createdAt": comment.created_at.isoformat(),
+        },
+        meta=ResponseMeta(request_id=req_id),
+        message="Comment added."
+    )

@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:15-alpine
+    image: public.ecr.aws/docker/library/postgres:15-alpine
     environment:
       POSTGRES_USER: aegis
       POSTGRES_PASSWORD: aegis_password
@@ -12,13 +12,13 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U aegis"]
+      test: ["CMD-SHELL", "pg_isready -U aegis -d aegis_db"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
-    image: redis:7-alpine
+    image: public.ecr.aws/docker/library/redis:7-alpine
     ports:
       - "6379:6379"
     healthcheck:
@@ -39,7 +39,6 @@ services:
     environment:
       - DATABASE_URL=postgresql+asyncpg://aegis:aegis_password@db:5432/aegis_db
       - REDIS_URL=redis://redis:6379/0
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     depends_on:
       db:
         condition: service_healthy
@@ -50,13 +49,12 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: celery -A app.worker.celery worker --loglevel=info
+    command: celery -A app.worker:celery_app worker --loglevel=info
     volumes:
       - ./backend:/app
     environment:
       - DATABASE_URL=postgresql+asyncpg://aegis:aegis_password@db:5432/aegis_db
       - REDIS_URL=redis://redis:6379/0
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     depends_on:
       db:
         condition: service_healthy
