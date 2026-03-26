@@ -1,7 +1,7 @@
 # Cross-Verification Report: Implementation vs Design Documents
 
 **Report Date:** March 23, 2026  
-**Project:** Aegis — Incident Intelligence Platform
+**Project:** Vigilinex — Incident Intelligence Platform
 
 > [!CAUTION]
 > This report reveals a **fundamental architectural divergence** between the design documentation and the actual implementation. The design docs describe a full Python backend platform; the implementation is a React/Firebase frontend-only application.

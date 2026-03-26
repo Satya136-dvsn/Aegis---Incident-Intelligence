@@ -24,8 +24,8 @@ import Markdown from 'react-markdown';
 // Mock User for MVP Dashboard
 const MOCK_USER = {
   uid: "admin123",
-  email: "admin@aegis.com",
-  displayName: "Aegis Administrator",
+  email: "admin@vigilinex.com",
+  displayName: "Vigilinex Administrator",
   role: "admin"
 };
 
@@ -42,8 +42,14 @@ const StatusBadge = ({ status }: { status: Status }) => (
 );
 
 export default function App() {
-  const [user, setUser] = useState<any | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
+  const [user, setUser] = useState<any | null>(() => {
+    const saved = localStorage.getItem('vigilinex_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [profile, setProfile] = useState<any | null>(() => {
+    const saved = localStorage.getItem('vigilinex_profile');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'dashboard' | 'report' | 'detail'>('dashboard');
@@ -70,7 +76,7 @@ export default function App() {
     if (user) {
       loadIncidents();
       
-      // Connect to Aegis Intelligence Stream!
+      // Connect to Vigilinex Intelligence Stream!
       const disconnect = connectWebSocket(
         (metric) => {
           console.log("Realtime metric:", metric);
@@ -113,18 +119,22 @@ export default function App() {
   const handleLogin = () => {
     setUser(MOCK_USER);
     setProfile(MOCK_USER);
+    localStorage.setItem('vigilinex_user', JSON.stringify(MOCK_USER));
+    localStorage.setItem('vigilinex_profile', JSON.stringify(MOCK_USER));
   };
 
   const handleLogout = () => {
     setUser(null);
     setProfile(null);
+    localStorage.removeItem('vigilinex_user');
+    localStorage.removeItem('vigilinex_profile');
   };
 
   const handleReportIncident = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Post to standard FastAPI endpoint ideally. We didn't build `POST /incidents` in our backend MVP,
     // as incidents are automatically created by the Anomaly Engine!
-    alert('Manual incident reporting is disabled. The Aegis Engine automatically creates incidents via Anomaly Detection.');
+    alert('Manual incident reporting is disabled. The Vigilinex Engine automatically creates incidents via Anomaly Detection.');
     setView('dashboard');
   };
 
@@ -174,8 +184,8 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-md w-full text-center"
         >
-          <Shield className="w-16 h-16 mx-auto mb-6" />
-          <h1 className="text-4xl font-bold mb-2 tracking-tighter uppercase italic">Aegis</h1>
+          <img src="/favicon.png" alt="Vigilinex Logo" className="w-24 h-24 mx-auto mb-6 object-contain drop-shadow-lg" />
+          <h1 className="text-4xl font-bold mb-2 tracking-tighter uppercase italic">Vigilinex</h1>
           <p className="text-sm opacity-60 mb-8 font-mono uppercase tracking-widest">Incident Intelligence Platform</p>
           <button onClick={handleLogin} className="btn-primary w-full py-4 flex items-center justify-center gap-2">
             <UserIcon size={18} /> Enter Dashboard
@@ -189,9 +199,10 @@ export default function App() {
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-black p-4 flex items-center justify-between sticky top-0 bg-[#E4E3E0] z-10">
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold tracking-tighter uppercase italic cursor-pointer" onClick={() => {setView('dashboard'); loadIncidents();}}>
-            Aegis
-          </h1>
+          <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => {setView('dashboard'); loadIncidents();}}>
+            <img src="/favicon.png" alt="Vigilinex Logo" className="w-8 h-8 object-contain drop-shadow-sm" />
+            <h1 className="text-xl font-bold tracking-tighter uppercase italic m-0">Vigilinex</h1>
+          </div>
           <div className="hidden md:flex items-center gap-2 text-[10px] font-mono uppercase opacity-50">
             <Activity size={12} className="text-green-600 animate-pulse" /> Stream Connected
             <span className="mx-2">/</span>
@@ -447,7 +458,7 @@ export default function App() {
                 <div className="border border-black p-6 bg-black text-white space-y-4">
                   <h3 className="text-[10px] font-mono uppercase opacity-50">Intelligence Note</h3>
                   <p className="text-xs font-serif italic leading-relaxed opacity-80">
-                    This incident is actively monitored by the Aegis Inference Engine. Communications are analyzed for threat vectors.
+                    This incident is actively monitored by the Vigilinex Inference Engine. Communications are analyzed for threat vectors.
                   </p>
                 </div>
               </div>
@@ -458,7 +469,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-black p-4 text-[10px] font-mono uppercase opacity-30 flex justify-between">
-        <div>Aegis Backend Driven Dashboard</div>
+        <div>Vigilinex Incident Intelligence</div>
         <div>{new Date().getFullYear()} © Sentinel Systems</div>
       </footer>
     </div>

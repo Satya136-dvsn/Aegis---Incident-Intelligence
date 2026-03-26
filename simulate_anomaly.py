@@ -15,7 +15,7 @@ for i in range(12):
     requests.post(API_URL, json=payload)
     time.sleep(0.1)
 
-print("🔥 Triggering Critical CPU Anomaly on Aegis API...")
+print("🔥 Triggering Critical CPU Anomaly on Vigilinex API...")
 
 # 2. Send the massive spike to trigger the Anomaly 2-sigma threshold
 payload = [{
@@ -28,7 +28,7 @@ response = requests.post(API_URL, json=payload)
 
 if response.status_code == 201:
     print("✅ Metric successfully ingested.")
-    print("🤖 The Aegis Celery Worker has detected an anomaly and is querying Gemini for RCA...")
+    print("🤖 The Vigilinex Celery Worker has detected an anomaly and is querying Gemini for RCA...")
     print("👀 Look at your dashboard at http://localhost:5173 ! An incident should appear in real-time.")
 else:
     print(f"❌ Failed to ingest metric: {response.text}")

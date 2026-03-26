@@ -4,15 +4,15 @@ services:
   db:
     image: public.ecr.aws/docker/library/postgres:15-alpine
     environment:
-      POSTGRES_USER: aegis
-      POSTGRES_PASSWORD: aegis_password
-      POSTGRES_DB: aegis_db
+      POSTGRES_USER: vigilinex
+      POSTGRES_PASSWORD: vigilinex_password
+      POSTGRES_DB: vigilinex_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U aegis -d aegis_db"]
+      test: ["CMD-SHELL", "pg_isready -U vigilinex -d vigilinex_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -37,7 +37,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://aegis:aegis_password@db:5432/aegis_db
+      - DATABASE_URL=postgresql+asyncpg://vigilinex:vigilinex_password@db:5432/vigilinex_db
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       db:
@@ -53,7 +53,7 @@ services:
     volumes:
       - ./backend:/app
     environment:
-      - DATABASE_URL=postgresql+asyncpg://aegis:aegis_password@db:5432/aegis_db
+      - DATABASE_URL=postgresql+asyncpg://vigilinex:vigilinex_password@db:5432/vigilinex_db
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       db:

@@ -1,6 +1,6 @@
-# Aegis Incident Intelligence — Feature Walkthrough
+# Vigilinex — Incident Intelligence — Feature Walkthrough
 
-Welcome to the walkthrough of Aegis, an AI-powered incident management platform. This document highlights the core features and how they function within the platform.
+Welcome to the walkthrough of Vigilinex, an AI-powered incident management platform. This document highlights the core features and how they function within the platform.
 
 ## 🚀 1. Real-Time Dashboard
 
@@ -18,7 +18,7 @@ Reporting an incident is a streamlined process with built-in AI assistance.
 
 ## 🤖 3. AI-Powered Intelligence
 
-Aegis goes beyond simple tracking by providing deep analysis:
+Vigilinex goes beyond simple tracking by providing deep analysis:
 
 - **Executive Summary:** Click the "Regenerate Analysis" button to get a high-level overview of the entire incident landscape. Gemini identifies trends, recurring issues, and critical risks.
 - **Root Cause Analysis (RCA):** For any incident, the platform can trigger a deep-dive analysis (via the `/api/v1/rca` endpoint) to identify probable causes and suggest fixes based on recent system logs and metrics.
@@ -40,4 +40,4 @@ The platform is secured by a robust **Role-Based Access Control (RBAC)** system:
 
 ---
 
-*Aegis Incident Intelligence // Built with React, Firebase, and Gemini AI*
+*Vigilinex — Incident Intelligence // Built with React, FastAPI, and Gemini AI*

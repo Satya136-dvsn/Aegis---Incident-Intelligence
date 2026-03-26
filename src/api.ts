@@ -72,7 +72,7 @@ export function connectWebSocket(
   };
 
   ws.onopen = () => {
-    console.log('Connected to Aegis Intelligence Stream');
+    console.log('Connected to Vigilinex Intelligence Stream');
   };
 
   return () => {

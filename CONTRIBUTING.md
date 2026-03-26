@@ -1,6 +1,6 @@
-# Contributing to Aegis
+# Contributing to Vigilinex
 
-First off, thank you for considering contributing to Aegis! It's people like you that make Aegis such a great tool for the community.
+First off, thank you for considering contributing to Vigilinex! It's people like you that make Vigilinex such a great tool for the community.
 
 ## Code of Conduct
 
@@ -52,4 +52,4 @@ You can reach out to the project owner at `d.v.satyanarayana260@gmail.com`.
 
 ---
 
-*Aegis Incident Intelligence // Contributing Guide*
+*Vigilinex — Incident Intelligence // Contributing Guide*

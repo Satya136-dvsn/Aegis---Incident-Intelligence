@@ -1,4 +1,4 @@
-# 🚀 Aegis — Incident Intelligence: Deep Technical Breakdown
+# 🚀 Vigilinex — Incident Intelligence: Deep Technical Breakdown
 
 **Role:** Senior Software Architect & Hiring Manager  
 **Report Version:** 1.0.0  
@@ -9,7 +9,7 @@
 ## 🔍 1. PROBLEM & PURPOSE
 
 **Real-World Problem:**  
-Security and operations teams lack a centralized, intelligent system for incident lifecycle management. Most teams rely on email chains, spreadsheets, or generic ticketing tools that provide zero insight into incident patterns or root causes. Aegis solves the **"Incident Intelligence Gap"** — transforming basic incident tracking into an AI-augmented intelligence platform.
+Security and operations teams lack a centralized, intelligent system for incident lifecycle management. Most teams rely on email chains, spreadsheets, or generic ticketing tools that provide zero insight into incident patterns or root causes. Vigilinex solves the **"Incident Intelligence Gap"** — transforming basic incident tracking into an AI-augmented intelligence platform.
 
 **Target Users:**  
 - **Security Operations (SOC) Teams:** Reporting and tracking security incidents in real-time.
